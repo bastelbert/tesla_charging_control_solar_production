@@ -1,0 +1,720 @@
+[
+    {
+        "id": "284d9051762adf5b",
+        "type": "tab",
+        "label": "Tesla charge control",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "5fc9c1e3f6d78b83",
+        "type": "debug",
+        "z": "284d9051762adf5b",
+        "name": "Stop charging",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1220,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "b4f35c91cf19caf3",
+        "type": "loxone-control-in",
+        "z": "284d9051762adf5b",
+        "name": "Current production",
+        "miniserver": "",
+        "control": "1570bf82-011d-afca-ffffcce15125b0a9",
+        "state": "1570bf82-011d-afac-ffff4e1403e5e3e7",
+        "x": 510,
+        "y": 660,
+        "wires": [
+            [
+                "ce4c49c2f10b6c06"
+            ]
+        ],
+        "info": "The current production of the solar system is delivered by Loxone."
+    },
+    {
+        "id": "c4713d4ccc2de6da",
+        "type": "function",
+        "z": "284d9051762adf5b",
+        "name": "Calculate ampvalue",
+        "func": "// If production = x, then set charge amp y\n\n\n// Set variables from the two different messages\nif (msg.topic === 'go') {\n  context.go = msg.payload;\n} else if (msg.topic === 'ladekapa_current') {\n  context.ladekapa_current = msg.payload;\n}\n\n// If no START, then only message to second output\nif (context.go != \"START\") {\n    return [ null ];\n}\n\n// If START, then set ampvalue according to PV production\nif (context.go === \"START\") {\n    if (context.ladekapa_current < 3.900) {\n    ampvalue = 5 \n    context.go = null\n    }\n    else if (context.ladekapa_current < 4.500) {\n     ampvalue = 6 \n     context.go = null\n    }\n    else if (context.ladekapa_current < 5.200) {\n     ampvalue = 7 \n     context.go = null\n    }\n    else if (context.ladekapa_current < 5.900) {\n     ampvalue = 8 \n     context.go = null\n    }\n     else if (context.ladekapa_current < 6.600) {\n     ampvalue = 9 \n     context.go = null\n    }\n     else if (context.ladekapa_current < 7.300) {\n     ampvalue = 10 \n     context.go = null\n    }\n     else if (context.ladekapa_current < 8.000) {\n     ampvalue = 11 \n     context.go = null\n    }\n     else if (context.ladekapa_current < 8.700) {\n     ampvalue = 12 \n     context.go = null\n    }\n        else if (context.ladekapa_current < 9.400) {\n     ampvalue = 13 \n     context.go = null\n    }\n        else if (context.ladekapa_current < 10.100) {\n     ampvalue = 14 \n     context.go = null\n    }\n        else if (context.ladekapa_current < 10.800) {\n     ampvalue = 15 \n     context.go = null\n    }\n        else if (context.ladekapa_current > 10.800) {\n     ampvalue = 16 \n     context.go = null\n    }\n}\n\n\n// Send parameters as calculated above\nmsg.payload = {\"commandArgs\":{amps:ampvalue} }\n\n\n// Output to output 1\nreturn [ msg.payload, null ];\n",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 890,
+        "y": 400,
+        "wires": [
+            [
+                "bf9f64e261fce6b1"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "a82d506eac285a9a",
+        "type": "debug",
+        "z": "284d9051762adf5b",
+        "name": "Charging power",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1340,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "bdec47fbca0ed3a3",
+        "type": "ui_switch",
+        "z": "284d9051762adf5b",
+        "name": "",
+        "label": "Start PV-controlled charging",
+        "tooltip": "",
+        "group": "7e9f2855f9f81e8f",
+        "order": 3,
+        "width": 5,
+        "height": 2,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "onvalue": "START",
+        "onvalueType": "str",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "STOP",
+        "offvalueType": "str",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "className": "",
+        "x": 440,
+        "y": 200,
+        "wires": [
+            [
+                "37a25843e1cce3e3"
+            ]
+        ],
+        "info": "Button to start the whole charging process."
+    },
+    {
+        "id": "671d60e710d54acd",
+        "type": "controltimer",
+        "z": "284d9051762adf5b",
+        "name": "",
+        "timerType": "loop",
+        "timerDurationUnit": "second",
+        "timerDurationType": "num",
+        "timerDuration": 10,
+        "timerLoopTimeoutUnit": "second",
+        "timerLoopTimeoutType": "num",
+        "timerLoopTimeout": 0,
+        "loopTimeoutMessageType": "str",
+        "loopTimeoutMessage": "LOOP_TIMEOUT",
+        "timerMaxLoopIterationsType": "num",
+        "timerMaxLoopIterations": 0,
+        "loopMaxIterationsMessageType": "str",
+        "loopMaxIterationsMessage": "MAX_LOOP_ITERATIONS",
+        "isConsecutiveStartActionTimerResetAllowed": false,
+        "isRunningTimerProgressVisible": false,
+        "outputReceivedMessageOnTimerTrigger": true,
+        "outputReceivedMessageOnTimerHalt": true,
+        "startTimerOnReceivalOfUnknownMessage": false,
+        "resetTimerOnReceivalOfUnknownMessage": false,
+        "isDebugModeEnabled": false,
+        "timerTriggeredMessageType": "str",
+        "timerTriggeredMessage": "TIMER_TRIGGERED",
+        "timerHaltedMessageType": "str",
+        "timerHaltedMessage": "TIMER_HALTED",
+        "isStartActionEnabled": true,
+        "isStopActionEnabled": true,
+        "isResetActionEnabled": true,
+        "isPauseActionEnabled": true,
+        "isContinueActionEnabled": true,
+        "actionPropertyNameType": "str",
+        "actionPropertyName": "payload",
+        "startActionNameType": "str",
+        "startActionName": "START",
+        "stopActionNameType": "str",
+        "stopActionName": "STOP",
+        "resetActionNameType": "str",
+        "resetActionName": "RESET",
+        "pauseActionNameType": "str",
+        "pauseActionName": "PAUSE",
+        "continueActionNameType": "str",
+        "continueActionName": "CONTINUE",
+        "x": 340,
+        "y": 300,
+        "wires": [
+            [
+                "8497a9d49be948e8",
+                "2b1b48b482d4133e"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "c0244dce960532af",
+        "type": "debug",
+        "z": "284d9051762adf5b",
+        "name": "Start charging",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1220,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "37a25843e1cce3e3",
+        "type": "switch",
+        "z": "284d9051762adf5b",
+        "name": "START/STOP",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "STOP",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "START",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 720,
+        "y": 200,
+        "wires": [
+            [
+                "671d60e710d54acd",
+                "4a980c232e82bd3e",
+                "cff50b2289a6e238"
+            ],
+            [
+                "671d60e710d54acd",
+                "eea10ada646b734d",
+                "cff50b2289a6e238"
+            ]
+        ]
+    },
+    {
+        "id": "8497a9d49be948e8",
+        "type": "function",
+        "z": "284d9051762adf5b",
+        "name": "START",
+        "func": "var newMsg = { payload: msg.payload,topic:\"go\" };\nreturn newMsg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 400,
+        "wires": [
+            [
+                "c4713d4ccc2de6da"
+            ]
+        ],
+        "outputLabels": [
+            "einspeisung"
+        ]
+    },
+    {
+        "id": "ce4c49c2f10b6c06",
+        "type": "function",
+        "z": "284d9051762adf5b",
+        "name": "Current production",
+        "func": "var newMsg = { payload: msg.payload,topic:\"prod_current\" };\nreturn newMsg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 750,
+        "y": 660,
+        "wires": [
+            [
+                "79731457519bb550"
+            ]
+        ],
+        "outputLabels": [
+            "einspeisung"
+        ]
+    },
+    {
+        "id": "e6bd457b97f18720",
+        "type": "function",
+        "z": "284d9051762adf5b",
+        "name": "Power consumption",
+        "func": "msg.payload = msg.payload / 1000\nvar newMsg = { payload: msg.payload,topic:\"verbrauch_current\" };\nreturn newMsg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 600,
+        "wires": [
+            [
+                "d0c823236da0f75d"
+            ]
+        ],
+        "outputLabels": [
+            "einspeisung"
+        ]
+    },
+    {
+        "id": "f84ed0d5da1ded8e",
+        "type": "function",
+        "z": "284d9051762adf5b",
+        "name": "Charger power",
+        "func": "msg.payload = Number(msg.payload.charger_power);\nvar newMsg = { payload: msg.payload,topic:\"llkw_current\" };\nreturn newMsg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 540,
+        "wires": [
+            [
+                "d0c823236da0f75d"
+            ]
+        ],
+        "outputLabels": [
+            "verbrauch"
+        ]
+    },
+    {
+        "id": "d0c823236da0f75d",
+        "type": "function",
+        "z": "284d9051762adf5b",
+        "name": "Consumption minus charger power",
+        "func": "if (msg.topic === 'llkw_current') {\n  context.llkwcurrent = msg.payload;\n} else if (msg.topic === 'verbrauch_current') {\n  context.verbrauch_current = msg.payload;\n}\n\nmsg.payload = context.verbrauch_current - context.llkwcurrent\n\nvar newMsg = { payload: msg.payload,topic:\"hausverbrauch_current\" };\nreturn newMsg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 980,
+        "y": 560,
+        "wires": [
+            [
+                "79731457519bb550"
+            ]
+        ],
+        "outputLabels": [
+            "einspeisung"
+        ]
+    },
+    {
+        "id": "c517011b64e2b829",
+        "type": "loxone-control-in",
+        "z": "284d9051762adf5b",
+        "name": "Current power consumption",
+        "miniserver": "",
+        "control": "143b35fa-0164-fd97-ffffcce15125b0a9",
+        "state": "143b35fa-0164-fd8c-ffffae1b59fd2db7",
+        "x": 480,
+        "y": 600,
+        "wires": [
+            [
+                "e6bd457b97f18720"
+            ]
+        ],
+        "info": "The current total power consumption is supplied by Loxone."
+    },
+    {
+        "id": "79731457519bb550",
+        "type": "function",
+        "z": "284d9051762adf5b",
+        "name": "Production minus home power consumption",
+        "func": "if (msg.topic === 'hausverbrauch_current') {\n  context.hausverbrauch_current = msg.payload;\n} else if (msg.topic === 'prod_current') {\n  context.prod_current = msg.payload;\n}\n\nmsg.payload = context.prod_current - context.hausverbrauch_current\n\nvar newMsg = { payload: msg.payload,topic:\"ladekapa_current\" };\nreturn newMsg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1350,
+        "y": 560,
+        "wires": [
+            [
+                "c4713d4ccc2de6da"
+            ]
+        ],
+        "outputLabels": [
+            "einspeisung"
+        ]
+    },
+    {
+        "id": "53e705bd1e884233",
+        "type": "debug",
+        "z": "284d9051762adf5b",
+        "name": "Production minus home power consumption",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1350,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "51cd04dc7aeec23c",
+        "type": "tesla-api",
+        "z": "284d9051762adf5b",
+        "teslaConfig": "",
+        "command": "chargeState",
+        "name": "chargeState",
+        "vehicleID": "secretnumber",
+        "autoWakeUp": false,
+        "x": 530,
+        "y": 540,
+        "wires": [
+            [
+                "f84ed0d5da1ded8e"
+            ]
+        ]
+    },
+    {
+        "id": "eea10ada646b734d",
+        "type": "tesla-api",
+        "z": "284d9051762adf5b",
+        "teslaConfig": "",
+        "command": "startCharge",
+        "name": "startCharge",
+        "vehicleID": "secretnumber",
+        "autoWakeUp": true,
+        "x": 1010,
+        "y": 240,
+        "wires": [
+            [
+                "5fc9c1e3f6d78b83"
+            ]
+        ]
+    },
+    {
+        "id": "4a980c232e82bd3e",
+        "type": "tesla-api",
+        "z": "284d9051762adf5b",
+        "teslaConfig": "",
+        "command": "stopCharge",
+        "name": "stopCharge",
+        "vehicleID": "secretnumber",
+        "autoWakeUp": true,
+        "x": 1010,
+        "y": 180,
+        "wires": [
+            [
+                "c0244dce960532af"
+            ]
+        ]
+    },
+    {
+        "id": "bf9f64e261fce6b1",
+        "type": "tesla-api",
+        "z": "284d9051762adf5b",
+        "teslaConfig": "",
+        "command": "setChargingAmps",
+        "name": "setChargingAmps",
+        "vehicleID": "secretnumber",
+        "autoWakeUp": true,
+        "x": 1130,
+        "y": 400,
+        "wires": [
+            [
+                "a82d506eac285a9a"
+            ]
+        ]
+    },
+    {
+        "id": "cff50b2289a6e238",
+        "type": "controltimer",
+        "z": "284d9051762adf5b",
+        "name": "",
+        "timerType": "loop",
+        "timerDurationUnit": "second",
+        "timerDurationType": "num",
+        "timerDuration": 6,
+        "timerLoopTimeoutUnit": "second",
+        "timerLoopTimeoutType": "num",
+        "timerLoopTimeout": 0,
+        "loopTimeoutMessageType": "str",
+        "loopTimeoutMessage": "LOOP_TIMEOUT",
+        "timerMaxLoopIterationsType": "num",
+        "timerMaxLoopIterations": 0,
+        "loopMaxIterationsMessageType": "str",
+        "loopMaxIterationsMessage": "MAX_LOOP_ITERATIONS",
+        "isConsecutiveStartActionTimerResetAllowed": false,
+        "isRunningTimerProgressVisible": false,
+        "outputReceivedMessageOnTimerTrigger": true,
+        "outputReceivedMessageOnTimerHalt": true,
+        "startTimerOnReceivalOfUnknownMessage": false,
+        "resetTimerOnReceivalOfUnknownMessage": false,
+        "isDebugModeEnabled": false,
+        "timerTriggeredMessageType": "str",
+        "timerTriggeredMessage": "TIMER_TRIGGERED",
+        "timerHaltedMessageType": "str",
+        "timerHaltedMessage": "TIMER_HALTED",
+        "isStartActionEnabled": true,
+        "isStopActionEnabled": true,
+        "isResetActionEnabled": true,
+        "isPauseActionEnabled": true,
+        "isContinueActionEnabled": true,
+        "actionPropertyNameType": "str",
+        "actionPropertyName": "payload",
+        "startActionNameType": "str",
+        "startActionName": "START",
+        "stopActionNameType": "str",
+        "stopActionName": "STOP",
+        "resetActionNameType": "str",
+        "resetActionName": "RESET",
+        "pauseActionNameType": "str",
+        "pauseActionName": "PAUSE",
+        "continueActionNameType": "str",
+        "continueActionName": "CONTINUE",
+        "x": 180,
+        "y": 540,
+        "wires": [
+            [
+                "51cd04dc7aeec23c"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "608bf87ab628ff8b",
+        "type": "inject",
+        "z": "284d9051762adf5b",
+        "name": "",
+        "props": [],
+        "repeat": "43200",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 430,
+        "y": 500,
+        "wires": [
+            [
+                "51cd04dc7aeec23c"
+            ]
+        ]
+    },
+    {
+        "id": "ccdacc595d4b3e25",
+        "type": "http request",
+        "z": "284d9051762adf5b",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://192.168.2.91/api/1/vitals",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 350,
+        "y": 960,
+        "wires": [
+            [
+                "f8ef4958e6a400eb"
+            ]
+        ],
+        "info": "Query on the Tesla Wall Connector whether the charging cable is connected to the car"
+    },
+    {
+        "id": "e34aa0082bedaa3b",
+        "type": "inject",
+        "z": "284d9051762adf5b",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "15",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 180,
+        "y": 960,
+        "wires": [
+            [
+                "ccdacc595d4b3e25"
+            ]
+        ]
+    },
+    {
+        "id": "f8ef4958e6a400eb",
+        "type": "json",
+        "z": "284d9051762adf5b",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 520,
+        "y": 960,
+        "wires": [
+            [
+                "9cce98bb66f90a04"
+            ]
+        ]
+    },
+    {
+        "id": "9cce98bb66f90a04",
+        "type": "function",
+        "z": "284d9051762adf5b",
+        "name": "Vehicle connected?",
+        "func": "msg.payload = msg.payload.vehicle_connected\nvar newMsg = { payload: msg.payload,topic:\"vehicle_connected\" };\nreturn newMsg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 960,
+        "wires": [
+            [
+                "6e8fb35471681292"
+            ]
+        ]
+    },
+    {
+        "id": "2b1b48b482d4133e",
+        "type": "function",
+        "z": "284d9051762adf5b",
+        "name": "",
+        "func": "msg.payload = msg.payload\nvar newMsg = { payload: msg.payload,topic:\"loop_status\" };\nreturn newMsg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 200,
+        "y": 880,
+        "wires": [
+            [
+                "6e8fb35471681292"
+            ]
+        ]
+    },
+    {
+        "id": "6e8fb35471681292",
+        "type": "function",
+        "z": "284d9051762adf5b",
+        "name": "Status",
+        "func": "// Variablen aus den beiden verschiedenen Nachrichten setzen\nif (msg.topic === 'loop_status') {\n  context.loop_status = msg.payload;\n} else if (msg.topic === 'vehicle_connected') {\n  context.vehicle_connected = msg.payload;\n}\n\nif (context.loop_status === \"START\") {\n    if (context.vehicle_connected === false) {\n    msg.payload = \"STOP\";\n    context.loop_status = null\n    }\n    else {\n  msg.payload = null;\n    }\n}\nelse {\n  msg.payload = null;\n}\n\nreturn msg",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 880,
+        "wires": [
+            [
+                "4f159b01d49d8bd3"
+            ]
+        ],
+        "outputLabels": [
+            "einspeisung"
+        ]
+    },
+    {
+        "id": "ba21d53357bc523e",
+        "type": "debug",
+        "z": "284d9051762adf5b",
+        "name": "Consumption minus charger power",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1260,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "4f159b01d49d8bd3",
+        "type": "rbe",
+        "z": "284d9051762adf5b",
+        "name": "",
+        "func": "rbei",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": true,
+        "property": "payload",
+        "topi": "topic",
+        "x": 210,
+        "y": 200,
+        "wires": [
+            [
+                "bdec47fbca0ed3a3"
+            ]
+        ],
+        "info": "Filter status values. Send only when status is changed."
+    },
+    {
+        "id": "7e9f2855f9f81e8f",
+        "type": "ui_group",
+        "name": "Fahrzeugsteuerung",
+        "tab": "9f153baa.1ccb88",
+        "order": 1,
+        "disp": true,
+        "width": "5",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "9f153baa.1ccb88",
+        "type": "ui_tab",
+        "name": "Tesla",
+        "icon": "dashboard",
+        "order": 4,
+        "disabled": false,
+        "hidden": false
+    }
+]
