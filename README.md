@@ -10,7 +10,7 @@ The flow has no claim to perfection (I am not a professional programmer). Please
 ![image](https://user-images.githubusercontent.com/32751381/164049949-51bd12fd-5416-4d37-82dc-9d4eda0d4444.png)
 
 Configuration guide:
-- update your Tesla Model to at least 2021.36 (required for command "setChargingAmps")
+- update your Tesla Model to at least 2021.36.5.5 (required for command "setChargingAmps")
 - install a Node-RED instance, e.g. in Docker: https://github.com/node-red/node-red-docker
 - install nodes: 
   -  https://github.com/onokje/node-red-contrib-tesla
