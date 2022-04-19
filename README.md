@@ -11,9 +11,3 @@ node-red-contrib-loxone, node-red-contrib-tesla
 The flow has no claim to perfection (I am not a professional programmer). Please feel free to contribute improvements.
 
 ![image](https://user-images.githubusercontent.com/32751381/164049949-51bd12fd-5416-4d37-82dc-9d4eda0d4444.png)
-
-# Configuration
-In order to get a working configuration replace the following placeholder with correct data:
-
-- <VEHICLE_ID> -> tesla vehicle id
-- ...
