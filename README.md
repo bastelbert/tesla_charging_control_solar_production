@@ -13,7 +13,7 @@ The flow has no claim to perfection (I am not a professional programmer). Please
 ![image](https://user-images.githubusercontent.com/32751381/164049949-51bd12fd-5416-4d37-82dc-9d4eda0d4444.png)
 
 # Configuration
-In order to get an working configuration replace the following placeholder with correct data:
+In order to get a working configuration replace the following placeholder with correct data:
 
 - <VEHICLE_ID> -> tesla vehicle id
 - ...
