@@ -1,5 +1,5 @@
 # Tesla charging control based on solar power production
-Charge your Tesla at a Tesla Wall Connector Gen3 (or any other wallbox) with spare solar power.
+Charge your Tesla Model at a Tesla Wall Connector Gen3 (or any other wallbox) with spare solar power.
 
 This repository contains a Node-RED flow as a template for your own charge control.
 In this example, the current electricity consumption and the solar production are determined via Loxone.
