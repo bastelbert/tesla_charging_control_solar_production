@@ -15,6 +15,7 @@ Configuration guide:
 - install nodes: 
   -  https://github.com/onokje/node-red-contrib-tesla
   -  https://github.com/codmpm/node-red-contrib-loxone
+  -  https://github.com/Writech/node-red-contrib-controltimer
 - configure Tesla API (add your account and select your car)
 - set up the connection to your Loxone Miniserver
 - adjust the IP address in the "http request" to reach your Wall Connector
