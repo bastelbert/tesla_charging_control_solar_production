@@ -7,7 +7,7 @@ The amp value is adjusted directly in the car every 10 seconds via Node-RED base
 
 The flow has no claim to perfection (I am not a professional programmer). Please feel free to contribute improvements.
 
-<img width="1492" alt="image" src="https://user-images.githubusercontent.com/32751381/164538007-6a416f7e-f74a-4406-a97f-41cd1cbc202f.png">
+<img width="1492" alt="image" src="https://user-images.githubusercontent.com/32751381/164538091-22e0de25-6ba4-482b-81d6-ee0377ce5140.png">
 
 Configuration guide:
 - update your Tesla Model to at least 2021.36.5.5 (required for command "setChargingAmps")
