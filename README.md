@@ -21,7 +21,7 @@ In this example, the current electricity consumption and the solar production ar
 
 <br>Fun fact:<br>
 It's possible to set amp values smaller than 5 by sending the value two times, e.g. 3A will be used and shown in the Tesla App.
-<br>Just edit the function node "calculate ampvalue" to your needs, e.g.:
+Just edit the function node "calculate ampvalue" to your needs, e.g.:
 <br>"if (context.ladekapa_current < 2100) { ampvalue = 3"
 
 <br>Please bear in mind that I cannot make any statement about the extent to which values lower than 5A can lead to problems on the car or during charging!
