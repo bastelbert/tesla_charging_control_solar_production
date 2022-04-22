@@ -21,6 +21,3 @@ Configuration guide:
 - adjust the IP address in the "http request" to reach your Wall Connector
 
 The flow was tested on Node-RED v.2.2.2 with a Loxone Miniserver Gen1, a Tesla Wall Connector Gen3 and a Tesla Model 3.
-
-Open points:
-- Execution of the command "setChargingAmps" only in case of a value change in order to avoid superfluous API calls. I have not yet been able to achieve this with a filter node. Any suggestions are welcome!
