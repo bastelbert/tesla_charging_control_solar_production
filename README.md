@@ -2,12 +2,11 @@
 Charge your Tesla Model at a Tesla Wall Connector Gen3 (or any other wallbox) with spare solar power.
 
 This repository contains a Node-RED flow as a template for your own charge control.
-In this example, the current electricity consumption and the solar production are determined via Loxone.
-The amp value is adjusted directly in the car every 10 seconds via Node-RED based on the current power consumption and the solar production. 
+In this example, the current electricity consumption and the solar production are determined via Loxone (can be replaced with any other source).
+Based on the current power consumption and the solar production, the surplus solar power is determined in Node-RED every 10 seconds and the ampere value to be set is calculated from this. If the value changes, the new ampere value is set directly in the car via a message to the Tesla API.
 
-The flow has no claim to perfection (I am not a professional programmer). Please feel free to contribute improvements.
 
-<img width="1492" alt="image" src="https://user-images.githubusercontent.com/32751381/164538091-22e0de25-6ba4-482b-81d6-ee0377ce5140.png">
+![image](https://user-images.githubusercontent.com/32751381/164721807-c8c43d53-c609-46aa-9031-90f7f4f57dac.png)
 
 Configuration guide:
 - update your Tesla Model to at least 2021.36.5.5 (required for command "setChargingAmps")
@@ -17,7 +16,7 @@ Configuration guide:
   -  https://github.com/codmpm/node-red-contrib-loxone
   -  https://github.com/Writech/node-red-contrib-controltimer
 - configure Tesla API (add your account and select your car)
-- set up the connection to your Loxone Miniserver
-- adjust the IP address in the "http request" to reach your Wall Connector
+- set up the connection to your Loxone Miniserver (optional - you can use your preferred data source)
+- adjust the IP address in the "http request" to reach your Wallbox
 
 The flow was tested on Node-RED v.2.2.2 with a Loxone Miniserver Gen1, a Tesla Wall Connector Gen3 and a Tesla Model 3.
