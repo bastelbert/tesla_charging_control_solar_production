@@ -20,8 +20,9 @@ In this example, the current electricity consumption and the solar production ar
 - adjust the IP address in the "http request" to reach your Wallbox
 
 <br>Fun fact:<br>
-It's possible to set amp values smaller than 5, e.g. 2A will be used and shown in the Tesla App.
-Just edit the function node "calculate ampvalue" to your needs. 
-But please bear in mind that I cannot make any statement about the extent to which values lower than 5A can lead to problems on the car or during charging!
+It's possible to set amp values smaller than 5 by sending the value two times, e.g. 3A will be used and shown in the Tesla App.
+Just edit the function node "calculate ampvalue" to your needs.
+<br>(you have to deactivate the "last_ampvalue" check because it prevents sending identical values more than once)
+<br>Please bear in mind that I cannot make any statement about the extent to which values lower than 5A can lead to problems on the car or during charging!
 
 <br>The flow was tested on Node-RED v.2.2.2 with a Loxone Miniserver Gen1, a Tesla Wall Connector Gen3 and a Tesla Model 3.
