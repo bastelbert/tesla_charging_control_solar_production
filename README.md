@@ -29,16 +29,16 @@ In both flows, the current electricity consumption and the solar production are 
 - adjust the IP address in the "http request" to reach your Wallbox
 
 <br>Default values:
-- min_charge_level_16A : 10, // charge with full power (but not more than max_ampere) until battery level reaches 10% 
-- min_charge_level_pv : 50, // charge mostly with solar power, but at least with min_ampere till battery level 50%
-- max_charge_level : 80, // stop charge process at battery level 80%
+- min_charge_level_16A : 10 // charge with full power (but not more than max_ampere) until battery level reaches 10% 
+- min_charge_level_pv : 50 // charge mostly with solar power, but at least with min_ampere till battery level 50%
+- max_charge_level : 80 // stop charge process at battery level 80%. Charge only, if enough solar power is available for min_ampere
 - activate_charge_control : true, // activate/deactivate the charge controller
-- allow_autocharge : false, // allow charge processes
-- phases : 3, // how many phases does the wall connector have?
-- min_ampere : 2, // don't charge below this
-- max_ampere : 16, // don't charge above this
-- buffer : 250, // value to decrease available power (watt)
-- start_stop_cooldown : 5*60*1000 // start/stop requests shouldn't be sent to quickly, in this case only five minutes after the last start/stop
+- allow_autocharge : false // allow charge processes
+- phases : 3 // how many phases does the wall connector have?
+- min_ampere : 2 // don't charge below this
+- max_ampere : 16 // don't charge above this (yes, the Tesla API actually allows higher values and shows them in the App!)
+- buffer : 250 // value to decrease available power (watt)
+- start_stop_cooldown : 5 * 60 * 1000 // start/stop requests shouldn't be sent to quickly, in this case not earlier than five minutes after the last start/stop
 
 
 <br>
