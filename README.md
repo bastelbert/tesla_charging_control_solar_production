@@ -10,7 +10,8 @@ In both flows, the current electricity consumption and the solar production are 
 <br>In this flow, some default values can be given and additionally customized in the dashboard via sliders to automatically start and stop loading processes.
 <br>It requires a running instance of Teslamate to get data from the car: https://github.com/adriankumpf/teslamate
 
-<img width="1406" alt="image" src="https://user-images.githubusercontent.com/32751381/172206177-2bb7ddc0-d029-4235-8e21-a974d685a3c7.png">
+![image](https://user-images.githubusercontent.com/32751381/182351014-b77b9814-f1eb-4e84-aee4-4ee2c1380e93.png)
+
 
 <br>Dashboard:
 <br><img width="314" alt="image" src="https://user-images.githubusercontent.com/32751381/172207592-734682b9-eda5-4256-a8fb-5161358ec089.png">
