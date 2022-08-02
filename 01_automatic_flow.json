@@ -1,6 +1,6 @@
 [
     {
-        "id": "d3d2983b695870be",
+        "id": "75dcafb60e64267e",
         "type": "tab",
         "label": "Tesla charge control",
         "disabled": false,
@@ -8,9 +8,9 @@
         "env": []
     },
     {
-        "id": "b939c3dda551d95e",
+        "id": "91b1bdcc079faea6",
         "type": "debug",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "start charging",
         "active": true,
         "tosidebar": true,
@@ -21,13 +21,13 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 1280,
-        "y": 80,
+        "y": 100,
         "wires": []
     },
     {
-        "id": "f63f01f558f230d8",
+        "id": "86d3fa477572e167",
         "type": "debug",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "charging power",
         "active": true,
         "tosidebar": true,
@@ -38,13 +38,13 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 1280,
-        "y": 140,
+        "y": 160,
         "wires": []
     },
     {
-        "id": "d360028d878bf32b",
+        "id": "3368ca5f185aab0a",
         "type": "debug",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "stop charging",
         "active": true,
         "tosidebar": true,
@@ -55,13 +55,13 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 1280,
-        "y": 20,
+        "y": 40,
         "wires": []
     },
     {
-        "id": "e9349a34e706925a",
+        "id": "e19522f4f980e6d0",
         "type": "function",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "actual_logic",
         "func": "context.data = context.data || {};\n\nphases                 = msg.payload.phases ;\nmin_ampere            = msg.payload.min_ampere;\nmax_ampere          = msg.payload.max_ampere;\nbuffer               = msg.payload.buffer ;    \nstart_stop_cooldown = msg.payload.start_stop_cooldown; \n\nnew_ampvalue = msg.payload.last_ampvalue \n\nif(context.data.last_start_stop == null)\n    context.data.last_start_stop = 0\n\nstart_stop_diff = new Date() - context.data.last_start_stop \n\nret = [null, //stop charging\n       null, //start charging\n       null, //set ampere\n       null //last ampere\n       ];\n\n\nswitch(msg.payload.allow_autocharge)\n{\n    case false:\n        should_charge = false;\n        break;\n \n    case true: \n        // calculate available solar power and possible ampere value to charge\n        available_power = (msg.payload.current_pv_production - msg.payload.current_power_consumption) \n                        +(msg.payload.twc3.currentA_a*msg.payload.twc3.voltageA_v) \n                        +(msg.payload.twc3.currentB_a*msg.payload.twc3.voltageB_v) \n                        +(msg.payload.twc3.currentC_a*msg.payload.twc3.voltageC_v)       \n                        -buffer // to ensure that charging is done almost exclusively with solar energy\n\n        possible_pv_ampere = available_power/(230*phases) | 0\n\n        // 1\n        if (msg.payload.tesla_soc >= msg.payload.max_charge_level ) {\n            should_charge = false;\n        }\n\n        // 2\n        if (msg.payload.tesla_soc < msg.payload.min_charge_level_16A) {\n            new_ampvalue = 16\n            should_charge = true;\n        } \n\n        // 3\n        if (msg.payload.tesla_soc >= msg.payload.min_charge_level_16A && msg.payload.tesla_soc < msg.payload.min_charge_level_pv ) {\n                new_ampvalue = possible_pv_ampere\n                should_charge = true\n                if( possible_pv_ampere < min_ampere ) {\n                    new_ampvalue = min_ampere\n                }\n        }\n\n        // 4\n        // -> charge with PV surplus (set ampere in car dynamically).\n        // -> stop charging as soon as there is not enough solar power left for at least $min_ampere OR MaxChargeLevel has been reached.\n        if (msg.payload.tesla_soc >= msg.payload.min_charge_level_pv && msg.payload.tesla_soc < msg.payload.max_charge_level ) {\n                new_ampvalue = possible_pv_ampere\n                should_charge = true\n                if( possible_pv_ampere < min_ampere ) {\n                    should_charge = false\n                }\n        }\n        break;\n}\n\n// choose and send messages\n// car is already charging, but not supposed to be charged -> stop charging process\nif (!should_charge && msg.payload.tesla_is_charging && start_stop_diff > start_stop_cooldown) {  \n    ret[0] = {payload:\"no\", topic:\"should_charge\"}\n    context.data.last_start_stop = new Date()\n}\n\n// car should be charged, but charging process is not running yet -> start charging process\nif (should_charge && !msg.payload.tesla_is_charging && start_stop_diff > start_stop_cooldown) { \n    ret[1] = {payload:\"yes\", topic:\"should_charge\"}\n    context.data.last_start_stop = new Date()\n}\n\nif( new_ampvalue > max_ampere)\n    new_ampvalue = max_ampere\n\n// car should be charged and ampvalue differs from previous one -> send new ampvalue\n// send ampvalues < 5 twice to ensure that unofficially supported values will be set\nif( should_charge && new_ampvalue != msg.payload.last_ampvalue && new_ampvalue > 0)\n    if(new_ampvalue < 5) \n        ret[2] =[ {\"commandArgs\":{amps:new_ampvalue} }, {\"commandArgs\":{amps:new_ampvalue} }]\n    else\n        ret[2] = {\"commandArgs\":{amps:new_ampvalue} }\n        ret[3] = {payload:new_ampvalue, topic:\"last_ampvalue\"}\nreturn ret;",
         "outputs": 4,
@@ -70,26 +70,26 @@
         "finalize": "",
         "libs": [],
         "x": 850,
-        "y": 80,
+        "y": 100,
         "wires": [
             [
-                "99be48ae18223c72"
+                "9076c6c3608f4c5d"
             ],
             [
-                "763f64ed0844de53"
+                "45d76b2bdac07004"
             ],
             [
-                "a0611bbf3c6318ed"
+                "c8d095bfbfd9948b"
             ],
             [
-                "30256a6527b3f6ac"
+                "f30665f458516a2b"
             ]
         ]
     },
     {
-        "id": "33c5e1d68b28114e",
+        "id": "708135c76906a1f7",
         "type": "http request",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "check_TWC3",
         "method": "GET",
         "ret": "txt",
@@ -100,19 +100,20 @@
         "proxy": "",
         "authType": "",
         "senderr": false,
+        "headers": [],
         "x": 280,
-        "y": 340,
+        "y": 360,
         "wires": [
             [
-                "8d18389c26301196"
+                "003e11925b97715b"
             ]
         ],
         "info": "Query on the Tesla Wall Connector whether the charging cable is connected to the car"
     },
     {
-        "id": "9a51a120e401cd67",
+        "id": "050cb8594ddc0940",
         "type": "inject",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "check_TWC3",
         "props": [
             {
@@ -131,34 +132,34 @@
         "payload": "",
         "payloadType": "date",
         "x": 100,
-        "y": 340,
+        "y": 360,
         "wires": [
             [
-                "33c5e1d68b28114e"
+                "708135c76906a1f7"
             ]
         ]
     },
     {
-        "id": "8d18389c26301196",
+        "id": "003e11925b97715b",
         "type": "json",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "",
         "property": "payload",
         "action": "",
         "pretty": false,
         "x": 440,
-        "y": 340,
+        "y": 360,
         "wires": [
             [
-                "30256a6527b3f6ac",
-                "5f88f35a82fcbc92"
+                "f30665f458516a2b",
+                "c27a814d15ad34a2"
             ]
         ]
     },
     {
-        "id": "30256a6527b3f6ac",
+        "id": "f30665f458516a2b",
         "type": "function",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "input_validation",
         "func": "context.data = context.data || {};\n\nswitch(msg.topic)\n{\n    case \"TWC3\":\n        context.data.twc3 = msg.payload\n        break;\n    case \"min_charge_level_16A\":\n        context.data.min_charge_level_16A = msg.payload\n        break;\n    case \"min_charge_level_pv\":\n        context.data.min_charge_level_pv = msg.payload\n        break;\n    case \"max_charge_level\":\n        context.data.max_charge_level = msg.payload\n        break;\n    case \"activate_charge_control\":\n        context.data.activate_charge_control = msg.payload\n        break;\n    case \"allow_autocharge\":\n        context.data.allow_autocharge = msg.payload\n        break;\n    case \"Energiemonitor\":\n        context.data.current_pv_production = Number(msg.payload) *1000\n        break;\n    case \"1.0 Gesamtstrom\":\n        context.data.current_power_consumption = Number(msg.payload)\n        break;\n    case \"last_ampvalue\":\n        context.data.last_ampvalue = msg.payload\n        break;\n    case \"teslamate/cars/1/plugged_in\":\n        context.data.tesla_plugged_in = msg.payload == \"true\"\n        break;\n    case \"teslamate/cars/1/usable_battery_level\":\n        context.data.tesla_soc = Number(msg.payload)\n        break;\n    case \"teslamate/cars/1/charge_limit_soc\":\n        context.data.tesla_charge_limit_soc = Number(msg.payload)\n        break;\n    case \"teslamate/cars/1/geofence\":\n        context.data.tesla_geofence = msg.payload\n        break;\n    case \"teslamate/cars/1/charger_power\":\n        context.data.tesla_is_charging = Number(msg.payload) > 0\n        break;\n    case \"phases\":\n        context.data.phases = msg.payload\n        break;\n    case \"min_ampere\":\n        context.data.min_ampere = msg.payload\n        break;\n    case \"max_ampere\":\n        context.data.max_ampere = msg.payload\n        break;\n    case \"buffer\":\n        context.data.buffer = msg.payload\n        break;\n    case \"start_stop_cooldown\":\n        context.data.start_stop_cooldown = msg.payload\n        break;\n}\n\n\n//check if data is filled\nif ( context.data.tesla_plugged_in == null\n|| context.data.tesla_soc == null\n|| context.data.tesla_charge_limit_soc == null\n|| context.data.tesla_geofence == null\n|| context.data.twc3 == null\n|| context.data.current_pv_production == null\n|| context.data.current_power_consumption == null\n|| context.data.tesla_is_charging == null\n|| context.data.min_charge_level_16A == null\n|| context.data.min_charge_level_pv == null\n|| context.data.max_charge_level == null\n|| context.data.activate_charge_control == null\n|| context.data.allow_autocharge == null\n|| context.data.phases == null\n|| context.data.min_ampere == null\n|| context.data.max_ampere == null\n|| context.data.buffer == null\n|| context.data.start_stop_cooldown == null\n)\nreturn null\n\nif(context.data.last_ampvalue == null)\n    context.data.last_ampvalue = -1\n    \n//check if the logic is disabled -> stop here\nif (!context.data.activate_charge_control)   \n    return null\n\n//don't do anything if the tesla is not at home or not plugged in (as reported by Teslamate)\nif ( context.data.tesla_geofence != \"Zuhause\" || !context.data.tesla_plugged_in)\n    return null\n\n// soc is higher than the charging limit -> the car won't do anything, so stop here\nif ( context.data.tesla_soc >= context.data.tesla_charge_limit_soc)\n    return null\n\n//make sure to be connected with the TWC3 wall charger\nif ( !context.data.twc3.vehicle_connected)\n    return null\n\nreturn {payload:context.data, topic:\"input_checked\"}",
         "outputs": 1,
@@ -167,18 +168,18 @@
         "finalize": "",
         "libs": [],
         "x": 860,
-        "y": 220,
+        "y": 240,
         "wires": [
             [
-                "e5726737bcc31107",
-                "cf9091937c337dee"
+                "e9faf632843f0a3d",
+                "c599cac7ef1b739b"
             ]
         ]
     },
     {
-        "id": "5f88f35a82fcbc92",
+        "id": "c27a814d15ad34a2",
         "type": "debug",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "twc3",
         "active": false,
         "tosidebar": true,
@@ -189,13 +190,13 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 590,
-        "y": 340,
+        "y": 360,
         "wires": []
     },
     {
-        "id": "e5726737bcc31107",
+        "id": "e9faf632843f0a3d",
         "type": "debug",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "input_validation",
         "active": false,
         "tosidebar": true,
@@ -206,13 +207,13 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 1080,
-        "y": 220,
+        "y": 240,
         "wires": []
     },
     {
-        "id": "cf9091937c337dee",
+        "id": "c599cac7ef1b739b",
         "type": "throttle",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "",
         "throttleType": "time",
         "timeLimit": "15",
@@ -221,26 +222,26 @@
         "blockSize": 0,
         "locked": false,
         "x": 680,
-        "y": 80,
+        "y": 100,
         "wires": [
             [
-                "e9349a34e706925a"
+                "e19522f4f980e6d0"
             ]
         ]
     },
     {
-        "id": "11331148ad6181be",
+        "id": "15a4243cf5042367",
         "type": "loxone-control-in",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "solar_feed_to_grid",
         "miniserver": "",
         "control": "143b3ac4-0054-1039-ffffcce15125b0a9",
         "state": "143b3ac4-0054-102e-ffff6970aa7f25b2",
         "x": 150,
-        "y": 160,
+        "y": 180,
         "wires": [
             [
-                "0f2491928f2ec2ee"
+                "9421c230d1ca0263"
             ]
         ],
         "outputLabels": [
@@ -248,9 +249,9 @@
         ]
     },
     {
-        "id": "0f2491928f2ec2ee",
+        "id": "9421c230d1ca0263",
         "type": "debug",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "feed_to_grid",
         "active": false,
         "tosidebar": true,
@@ -261,35 +262,35 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 450,
-        "y": 160,
+        "y": 180,
         "wires": []
     },
     {
-        "id": "a892076f2f1b15c7",
+        "id": "2145eaa80e28a81d",
         "type": "mqtt in",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "",
         "topic": "teslamate/cars/1/#",
         "qos": "2",
         "datatype": "auto",
-        "broker": "5110d3f5.ede6d4",
+        "broker": "",
         "nl": false,
         "rap": true,
         "rh": 0,
         "inputs": 0,
         "x": 150,
-        "y": 280,
+        "y": 300,
         "wires": [
             [
-                "efee64ab995a65e7",
-                "30256a6527b3f6ac"
+                "7419a22b40153814",
+                "f30665f458516a2b"
             ]
         ]
     },
     {
-        "id": "efee64ab995a65e7",
+        "id": "7419a22b40153814",
         "type": "debug",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "teslamate_all",
         "active": false,
         "tosidebar": true,
@@ -300,98 +301,98 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 450,
-        "y": 280,
+        "y": 300,
         "wires": []
     },
     {
-        "id": "a0611bbf3c6318ed",
+        "id": "c8d095bfbfd9948b",
         "type": "tesla-api",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "teslaConfig": "",
         "command": "setChargingAmps",
         "name": "setChargingAmps",
-        "vehicleID": "<VIN>",
+        "vehicleID": "<yourVIN>",
         "autoWakeUp": true,
         "x": 1090,
-        "y": 140,
+        "y": 160,
         "wires": [
             [
-                "f63f01f558f230d8"
+                "86d3fa477572e167"
             ]
         ]
     },
     {
-        "id": "763f64ed0844de53",
+        "id": "45d76b2bdac07004",
         "type": "tesla-api",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "teslaConfig": "",
         "command": "startCharge",
         "name": "startCharge",
-        "vehicleID": "<VIN>",
+        "vehicleID": "<yourVIN>",
         "autoWakeUp": true,
         "x": 1070,
-        "y": 80,
+        "y": 100,
         "wires": [
             [
-                "b939c3dda551d95e"
+                "91b1bdcc079faea6"
             ]
         ]
     },
     {
-        "id": "99be48ae18223c72",
+        "id": "9076c6c3608f4c5d",
         "type": "tesla-api",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "teslaConfig": "",
         "command": "stopCharge",
         "name": "stopCharge",
-        "vehicleID": "<VIN>",
+        "vehicleID": "<yourVIN>",
         "autoWakeUp": false,
         "x": 1070,
-        "y": 20,
+        "y": 40,
         "wires": [
             [
-                "d360028d878bf32b"
+                "3368ca5f185aab0a"
             ]
         ]
     },
     {
-        "id": "2df6d432957c9968",
+        "id": "e97b8c8994a03a8d",
         "type": "loxone-control-in",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "current_power_consumption",
         "miniserver": "",
         "control": "143b35fa-0164-fd97-ffffcce15125b0a9",
         "state": "143b35fa-0164-fd8c-ffffae1b59fd2db7",
         "x": 120,
-        "y": 220,
+        "y": 240,
         "wires": [
             [
-                "30256a6527b3f6ac",
-                "2a5cf3b8756e93ab"
+                "f30665f458516a2b",
+                "4a2648f6d6e86d80"
             ]
         ]
     },
     {
-        "id": "661124964ce70fad",
+        "id": "78c75b93b7f78a99",
         "type": "loxone-control-in",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "current_pv_production",
         "miniserver": "",
         "control": "1570bf82-011d-afca-ffffcce15125b0a9",
         "state": "1570bf82-011d-afac-ffff4e1403e5e3e7",
         "x": 140,
-        "y": 100,
+        "y": 120,
         "wires": [
             [
-                "30256a6527b3f6ac",
-                "972631c71e972570"
+                "f30665f458516a2b",
+                "525993f72e1a12b3"
             ]
         ]
     },
     {
-        "id": "2a5cf3b8756e93ab",
+        "id": "4a2648f6d6e86d80",
         "type": "debug",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "current_power_consumption",
         "active": false,
         "tosidebar": true,
@@ -402,13 +403,13 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 400,
-        "y": 220,
+        "y": 240,
         "wires": []
     },
     {
-        "id": "972631c71e972570",
+        "id": "525993f72e1a12b3",
         "type": "debug",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "current_pv_production",
         "active": false,
         "tosidebar": true,
@@ -419,13 +420,13 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 420,
-        "y": 100,
+        "y": 120,
         "wires": []
     },
     {
-        "id": "7ef45f55f38f6fa3",
+        "id": "104077f0bb728441",
         "type": "ui_slider",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "min_charge_level_16A",
         "label": "MinChargeLevel16A",
         "tooltip": "",
@@ -442,17 +443,17 @@
         "step": "5",
         "className": "",
         "x": 820,
-        "y": 400,
+        "y": 420,
         "wires": [
             [
-                "30256a6527b3f6ac"
+                "f30665f458516a2b"
             ]
         ]
     },
     {
-        "id": "a6a4f51777757c86",
+        "id": "84d3ef71c0550ffe",
         "type": "ui_slider",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "min_charge_level_pv",
         "label": "MinChargeLevelPV",
         "tooltip": "",
@@ -469,17 +470,17 @@
         "step": "5",
         "className": "",
         "x": 820,
-        "y": 460,
+        "y": 480,
         "wires": [
             [
-                "30256a6527b3f6ac"
+                "f30665f458516a2b"
             ]
         ]
     },
     {
-        "id": "6a8906456f65fad5",
+        "id": "b7b5eab66c500e47",
         "type": "ui_slider",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "max_charge_level",
         "label": "MaxChargeLevel",
         "tooltip": "",
@@ -496,17 +497,17 @@
         "step": "5",
         "className": "",
         "x": 810,
-        "y": 520,
+        "y": 540,
         "wires": [
             [
-                "30256a6527b3f6ac"
+                "f30665f458516a2b"
             ]
         ]
     },
     {
-        "id": "3f935b0e69d9c284",
+        "id": "7266163f19cc5e2e",
         "type": "inject",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "START",
         "props": [
             {
@@ -521,17 +522,17 @@
         "payload": "30",
         "payloadType": "num",
         "x": 320,
-        "y": 520,
+        "y": 540,
         "wires": [
             [
-                "d4e225d37d77382e"
+                "7d06590027317eac"
             ]
         ]
     },
     {
-        "id": "5ee2cdb91bb4a086",
+        "id": "a2d44b88e0e0a85b",
         "type": "ui_switch",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "allow_autocharge",
         "label": "Allow charging process",
         "tooltip": "",
@@ -555,18 +556,18 @@
         "animate": false,
         "className": "",
         "x": 810,
-        "y": 580,
+        "y": 600,
         "wires": [
             [
-                "30256a6527b3f6ac"
+                "f30665f458516a2b"
             ]
         ],
         "info": "Button to start the whole charging process."
     },
     {
-        "id": "c90c1071c2766512",
+        "id": "2359a74c729a1661",
         "type": "ui_switch",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "activate_charge_control",
         "label": "Activate automatic charge control",
         "tooltip": "",
@@ -590,64 +591,65 @@
         "animate": false,
         "className": "",
         "x": 830,
-        "y": 640,
+        "y": 660,
         "wires": [
             [
-                "30256a6527b3f6ac"
+                "f30665f458516a2b"
             ]
         ],
         "info": "Button to start the whole charging process."
     },
     {
-        "id": "d4e225d37d77382e",
+        "id": "7d06590027317eac",
         "type": "function",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "default_values",
-        "func": "constants = {\nmin_charge_level_16A : 10, // charge with full power (but not more than max_ampere) until battery level reaches x% \nmin_charge_level_pv : 50, // charge mostly with solar power, but at least with min_ampere till battery level x%\nmax_charge_level : 80, // stop charge process at battery level x%\nactivate_charge_control : true, // activate/deactivate the charge controller\nallow_autocharge : false, // allow charge processes\nphases : 3, // how many phases does the wall connector have?\nmin_ampere : 2, // don't charge below this\nmax_ampere : 16, // don't charge above this\nbuffer : 250, // value to decrease available power (watt)\nstart_stop_cooldown : 5*60*1000 // start/stop requests shouldn't be sent to quickly\n}\n\nmsg.constants = { payload:constants,topic:\"constants\" }\nmsg.min_charge_level_16A = {payload: constants.min_charge_level_16A, topic:\"min_charge_level_16A\" };\nmsg.min_charge_level_pv = { payload: constants.min_charge_level_pv, topic:\"min_charge_level_pv\" };\nmsg.max_charge_level = { payload: constants.max_charge_level, topic:\"max_charge_level\" };\nmsg.activate_charge_control = { payload: constants.activate_charge_control, topic:\"activate_charge_control\" };\nmsg.allow_autocharge = { payload: constants.allow_autocharge, topic:\"allow_autocharge\" };\nmsg.phases = { payload: constants.phases, topic:\"phases\" };\nmsg.min_ampere = { payload: constants.min_ampere, topic:\"min_ampere\" };\nmsg.max_ampere = { payload: constants.max_ampere, topic:\"max_ampere\" };\nmsg.buffer = { payload: constants.buffer, topic:\"buffer\" };\nmsg.start_stop_cooldown = { payload: constants.start_stop_cooldown, topic:\"start_stop_cooldown\" };\n\n// send messages to outputs 1,2,3,...\nreturn [ msg.constants, msg.min_charge_level_16A, msg.min_charge_level_pv, msg.max_charge_level, msg.allow_autocharge, msg.activate_charge_control, msg.phases, msg.min_ampere, msg.buffer, msg.start_stop_cooldown, msg.max_ampere ];",
+        "func": "const constants = {\nmin_charge_level_16A : 10, // charge with full power (but not more than max_ampere) until battery level reaches x% \nmin_charge_level_pv : 85, // charge mostly with solar power, but at least with min_ampere till battery level x%\nmax_charge_level : 85, // stop charge process at battery level x%\nactivate_charge_control : true, // activate/deactivate the charge controller\nallow_autocharge : true, // allow charge processes\nphases : 3, // how many phases does the wall connector have?\nmin_ampere : 2, // don't charge below this\nmax_ampere : 16, // don't charge above this\nbuffer : 300, // value to decrease available power (watt)\nstart_stop_cooldown : 5*60*1000 // start/stop requests shouldn't be sent to quickly\n}\n\nmsg.constants = { payload:constants,topic:\"constants\" }\nmsg.min_charge_level_16A = {payload: constants.min_charge_level_16A, topic:\"min_charge_level_16A\" };\nmsg.min_charge_level_pv = { payload: constants.min_charge_level_pv, topic:\"min_charge_level_pv\" };\nmsg.max_charge_level = { payload: constants.max_charge_level, topic:\"max_charge_level\" };\nmsg.activate_charge_control = { payload: constants.activate_charge_control, topic:\"activate_charge_control\" };\nmsg.allow_autocharge = { payload: constants.allow_autocharge, topic:\"allow_autocharge\" };\nmsg.phases = { payload: constants.phases, topic:\"phases\" };\nmsg.min_ampere = { payload: constants.min_ampere, topic:\"min_ampere\" };\nmsg.max_ampere = { payload: constants.max_ampere, topic:\"max_ampere\" };\nmsg.buffer = { payload: constants.buffer, topic:\"buffer\" };\nmsg.start_stop_cooldown = { payload: constants.start_stop_cooldown, topic:\"start_stop_cooldown\" };\n\n// send messages to outputs 1,2,3,...\nreturn [ msg.constants, msg.min_charge_level_16A, msg.min_charge_level_pv, msg.max_charge_level, msg.allow_autocharge, msg.activate_charge_control, msg.phases, msg.min_ampere, msg.buffer, msg.start_stop_cooldown, msg.max_ampere ];",
         "outputs": 11,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
         "x": 500,
-        "y": 520,
+        "y": 540,
         "wires": [
             [],
             [
-                "7ef45f55f38f6fa3",
-                "30256a6527b3f6ac"
+                "104077f0bb728441",
+                "f30665f458516a2b"
             ],
             [
-                "a6a4f51777757c86",
-                "30256a6527b3f6ac"
+                "84d3ef71c0550ffe",
+                "f30665f458516a2b"
             ],
             [
-                "6a8906456f65fad5",
-                "30256a6527b3f6ac"
+                "b7b5eab66c500e47",
+                "f30665f458516a2b"
             ],
             [
-                "5ee2cdb91bb4a086",
-                "30256a6527b3f6ac"
+                "a2d44b88e0e0a85b",
+                "f30665f458516a2b"
             ],
             [
-                "c90c1071c2766512",
-                "30256a6527b3f6ac"
+                "2359a74c729a1661",
+                "f30665f458516a2b"
             ],
             [
-                "30256a6527b3f6ac"
+                "f30665f458516a2b"
             ],
             [
-                "30256a6527b3f6ac",
-                "ca79ae5bf35dd6aa"
+                "f30665f458516a2b",
+                "4822610221f48401"
             ],
             [
-                "30256a6527b3f6ac"
+                "f30665f458516a2b"
             ],
             [
-                "30256a6527b3f6ac"
+                "f30665f458516a2b"
             ],
             [
-                "1281c9c56e1a4906"
+                "4bd5e370b7691073",
+                "f30665f458516a2b"
             ]
         ],
         "outputLabels": [
@@ -665,9 +667,9 @@
         ]
     },
     {
-        "id": "ca79ae5bf35dd6aa",
+        "id": "4822610221f48401",
         "type": "ui_slider",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "min_ampere",
         "label": "MinAmpere",
         "tooltip": "",
@@ -684,17 +686,17 @@
         "step": "1",
         "className": "",
         "x": 790,
-        "y": 700,
+        "y": 720,
         "wires": [
             [
-                "30256a6527b3f6ac"
+                "f30665f458516a2b"
             ]
         ]
     },
     {
-        "id": "1281c9c56e1a4906",
+        "id": "4bd5e370b7691073",
         "type": "ui_slider",
-        "z": "d3d2983b695870be",
+        "z": "75dcafb60e64267e",
         "name": "max_ampere",
         "label": "MaxAmpere",
         "tooltip": "",
@@ -711,42 +713,12 @@
         "step": "1",
         "className": "",
         "x": 790,
-        "y": 760,
+        "y": 780,
         "wires": [
             [
-                "30256a6527b3f6ac"
+                "f30665f458516a2b"
             ]
         ]
-    },
-    {
-        "id": "5110d3f5.ede6d4",
-        "type": "mqtt-broker",
-        "name": "teslamate",
-        "broker": "192.168.2.xxx",
-        "port": "1883",
-        "clientid": "",
-        "autoConnect": true,
-        "usetls": false,
-        "protocolVersion": "4",
-        "keepalive": "60",
-        "cleansession": true,
-        "birthTopic": "",
-        "birthQos": "0",
-        "birthRetain": "false",
-        "birthPayload": "",
-        "birthMsg": {},
-        "closeTopic": "",
-        "closeQos": "0",
-        "closeRetain": "false",
-        "closePayload": "",
-        "closeMsg": {},
-        "willTopic": "",
-        "willQos": "0",
-        "willRetain": "false",
-        "willPayload": "",
-        "willMsg": {},
-        "sessionExpiry": "",
-        "credentials": {}
     },
     {
         "id": "7e9f2855f9f81e8f",
